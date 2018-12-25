@@ -1,6 +1,6 @@
 package com.zjy.netty_springboot.netty.UDPStreamServer;
 
-import com.zjy.netty_springboot.netty.chat.ChatServerApplication;
+import com.zjy.netty_springboot.netty.transpondStreamServer.TranspondStreamServerApplication;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import org.slf4j.Logger;
@@ -17,16 +17,15 @@ public class UDPStreamServerApplication {
     private Bootstrap bootstrap;
 
     private Channel channel;
-    private static Logger logger = LoggerFactory.getLogger(ChatServerApplication.class);
+    private static Logger logger = LoggerFactory.getLogger(TranspondStreamServerApplication.class);
 
     public void start(String host, int port) throws Exception{
         try {
             channel = bootstrap.bind(host, port).sync().channel();
             System.out.println("UDPStreamServer start at " + port);
             channel.closeFuture().await();
-        }finally {
-            channel.close();
-            channel.parent().close();
+        }catch (Exception e){
+            e.printStackTrace();
         }
     }
 

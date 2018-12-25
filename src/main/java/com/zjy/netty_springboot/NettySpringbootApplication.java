@@ -1,12 +1,10 @@
 package com.zjy.netty_springboot;
 
 import com.zjy.netty_springboot.netty.UDPStreamServer.UDPStreamServerApplication;
-import com.zjy.netty_springboot.netty.chat.ChatServerApplication;
+import com.zjy.netty_springboot.netty.transpondStreamServer.TranspondStreamServerApplication;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ConfigurableApplicationContext;
-
-import java.io.IOException;
 
 @SpringBootApplication
 public class NettySpringbootApplication {
@@ -16,9 +14,9 @@ public class NettySpringbootApplication {
         ConfigurableApplicationContext context = SpringApplication.run(NettySpringbootApplication.class, args);
 
         new Thread(()->{
-            ChatServerApplication chatServerApplication = context.getBean(ChatServerApplication.class);
+            TranspondStreamServerApplication transpondStreamServerApplication = context.getBean(TranspondStreamServerApplication.class);
             try {
-                chatServerApplication.start();
+                transpondStreamServerApplication.start();
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -27,7 +25,7 @@ public class NettySpringbootApplication {
         new Thread(()->{
             UDPStreamServerApplication udpStreamServerApplication = context.getBean(UDPStreamServerApplication.class);
             try {
-                udpStreamServerApplication.start("127.0.0.1",4444);
+                udpStreamServerApplication.start(Config.ADDRESS_URL,Config.UDP_STREAM_SERVER_PORT);
             } catch (Exception e) {
                 e.printStackTrace();
             }

@@ -1,4 +1,4 @@
-package com.zjy.netty_springboot.netty.chat;
+package com.zjy.netty_springboot.netty.transpondStreamServer;
 
 import io.netty.channel.group.ChannelGroup;
 import io.netty.channel.group.DefaultChannelGroup;

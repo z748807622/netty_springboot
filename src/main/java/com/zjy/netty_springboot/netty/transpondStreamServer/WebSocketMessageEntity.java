@@ -1,4 +1,4 @@
-package com.zjy.netty_springboot.netty.chat;
+package com.zjy.netty_springboot.netty.transpondStreamServer;
 
 public class WebSocketMessageEntity {
     private String code;

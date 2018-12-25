@@ -1,20 +1,15 @@
-package com.zjy.netty_springboot.netty.chat;
+package com.zjy.netty_springboot.netty.transpondStreamServer;
 
+import com.zjy.netty_springboot.Config;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelInitializer;
-import io.netty.channel.ChannelOption;
-import io.netty.channel.DefaultEventLoop;
 import io.netty.channel.DefaultEventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.codec.http.HttpObjectAggregator;
 import io.netty.handler.codec.http.HttpServerCodec;
-import io.netty.handler.codec.http.websocketx.WebSocketServerProtocolHandler;
-import io.netty.handler.codec.string.StringDecoder;
-import io.netty.handler.codec.string.StringEncoder;
 import io.netty.handler.stream.ChunkedWriteHandler;
-import io.netty.handler.timeout.IdleStateHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -24,7 +19,7 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
 
 @Configuration
-public class ChatServer {
+public class TranspondStreamServer {
 
     @Autowired
     WebSocketHandler webSocketHandler;
@@ -77,7 +72,7 @@ public class ChatServer {
                 //.option(ChannelOption.SO_KEEPALIVE, true)
                 //.option(ChannelOption.TCP_NODELAY, true)
                 //.option(ChannelOption.SO_BACKLOG, 1024)
-                .localAddress(new InetSocketAddress(Config.DEFAULT_PORT))
+                .localAddress(new InetSocketAddress(Config.TRANSPOND_STREAM_SERVER_PORT))
                 .childHandler(new ChannelInitializer<SocketChannel>() {
 
                     @Override
@@ -95,6 +90,8 @@ public class ChatServer {
                                 //new IdleStateHandler(60, 0, 0),
                                 //处理握手和认证
                                 //new UserAuthHandler(),
+                                new WebSocketFrameDecoder(),
+                                new WebSocketFramePrepender(),
                                 //处理消息的发送
                                 new MySocketHandler()
 
