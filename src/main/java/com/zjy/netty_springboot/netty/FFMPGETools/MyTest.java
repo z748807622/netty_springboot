@@ -8,7 +8,18 @@ import java.io.InputStreamReader;
 public class MyTest {
     public static void main(String[] args) throws IOException, InterruptedException {
         ProcessBuilder builder = new ProcessBuilder();
-        builder.command();
+        builder.command("ping 127.0.0.1");
+        builder.redirectErrorStream();
+        Process proc = builder.start();
+        BufferedReader stdout = new BufferedReader(new InputStreamReader(proc.getInputStream(),"GBK"));
+        BufferedReader errout = new BufferedReader(new InputStreamReader(proc.getErrorStream(),"GBK"));
+
+        String line;
+        while ((line = stdout.readLine()) != null){
+            System.out.println(line);
+        }
+        proc.waitFor();
+        stdout.close();
     }
 
     public void execCmd(){
