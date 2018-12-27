@@ -14,7 +14,7 @@ public class Config {
      */
     public static String TRANSPOND_STREAM_SERVER_WEBSOCKET_URL = "ws://localhost:8888/ws";
 
-    public static String ADDRESS_URL = "127.0.0.1";
+    public static String ADDRESS_URL = "192.168.0.102";
 
     /**
      * 接收ffmpge UDP推流
