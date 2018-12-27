@@ -3,6 +3,7 @@ package com.zjy.netty_springboot.netty.transpondStreamServer;
 import com.zjy.netty_springboot.Config;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelInitializer;
+import io.netty.channel.ChannelOption;
 import io.netty.channel.DefaultEventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
@@ -21,11 +22,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 @Configuration
 public class TranspondStreamServer {
 
-    @Autowired
-    WebSocketHandler webSocketHandler;
-
-    @Autowired
-    MySocketHandler mySocketHandler;
 
     @Bean(name = "getDefLoopGroup")
     public DefaultEventLoopGroup getDefLoopGroup(){
@@ -69,7 +65,9 @@ public class TranspondStreamServer {
 
         serverBootstrap.group(bossGroup(), workGroup())
                 .channel(NioServerSocketChannel.class)
-                //.option(ChannelOption.SO_KEEPALIVE, true)
+                .option(ChannelOption.SO_KEEPALIVE, true)
+                .option(ChannelOption.SO_SNDBUF,1024 * 256)
+                .option(ChannelOption.SO_RCVBUF, 1024 * 256)
                 //.option(ChannelOption.TCP_NODELAY, true)
                 //.option(ChannelOption.SO_BACKLOG, 1024)
                 .localAddress(new InetSocketAddress(Config.TRANSPOND_STREAM_SERVER_PORT))

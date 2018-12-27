@@ -2,7 +2,7 @@ package com.zjy.netty_springboot;
 
 public class Config {
 
-    public static String DEFAULT_HOST = "127.0.0.1";
+    public static String DEFAULT_HOST = "192.168.11.187";
 
     /**
      * 转发ffmpge UDP推流的websocket端口
@@ -19,12 +19,16 @@ public class Config {
     /**
      * 接收ffmpge UDP推流
      */
-    public static int UDP_STREAM_SERVER_PORT = 4444;
+    public static int UDP_STREAM_SERVER_PORT = 8888;
 
     /**
      * 接收上传文件的端口
      */
     public static int UPLOAD_VIDEO_SERVER_PORT = 7777;
+
+    public static String UPLOAD_VIDEO_SERVER_WEBSOCKET_URL = "ws://localhost:7777/ws";
+
+    public static String UPLOAD_VIDEO_FILE_DIR = "D:/test";
 
 
 }

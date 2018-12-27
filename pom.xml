@@ -11,6 +11,8 @@
     <groupId>com.zjy</groupId>
     <artifactId>netty_springboot</artifactId>
     <version>0.0.1-SNAPSHOT</version>
+    <packaging>jar</packaging>
+
     <name>netty_springboot</name>
     <description>Demo project for Spring Boot</description>
 
@@ -24,10 +26,10 @@
             <artifactId>spring-boot-starter</artifactId>
         </dependency>
 
-        <dependency>
+       <!-- <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-start-web</artifactId>
-        </dependency>
+        </dependency>-->
 
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -48,6 +50,14 @@
             <artifactId>msgpack</artifactId>
             <version>0.6.12</version>
         </dependency>
+
+        <!-- https://mvnrepository.com/artifact/com.alibaba/fastjson -->
+        <dependency>
+            <groupId>com.alibaba</groupId>
+            <artifactId>fastjson</artifactId>
+            <version>1.2.54</version>
+        </dependency>
+
 
 
     </dependencies>
