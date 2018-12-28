@@ -21,7 +21,7 @@ public class UDPStreamServerApplication {
 
     public void start(String host, int port) throws Exception{
         try {
-            channel = bootstrap.bind(host, port).sync().channel();
+            channel = bootstrap.bind(port).sync().channel();
             System.out.println("UDPStreamServer start at " + port);
             channel.closeFuture().await();
         }catch (Exception e){

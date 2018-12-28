@@ -1,4 +1,4 @@
-package com.zjy.netty_springboot.netty.transpondStreamServer;
+package com.zjy.netty_springboot.netty.uploadVideoServer;
 
 import com.zjy.netty_springboot.Config;
 import io.netty.bootstrap.ServerBootstrap;
@@ -12,19 +12,19 @@ import org.springframework.stereotype.Component;
 import java.io.IOException;
 
 @Component
-public class TranspondStreamServerApplication {
+public class UploadVideoServerApplication {
 
     @Autowired
-    @Qualifier("bootstrap")
-    private ServerBootstrap serverBootstrap;
+    @Qualifier("UploadBootstrap")
+    private ServerBootstrap bootstrap;
 
     private Channel channel;
-    private static Logger logger = LoggerFactory.getLogger(TranspondStreamServerApplication.class);
+    private static Logger logger = LoggerFactory.getLogger(UploadVideoServerApplication.class);
 
     public void start() throws InterruptedException, IOException {
-        System.out.println("netty websocket 推流 启动");
-        logger.info("etty websocket 推流 启动");
-        channel = serverBootstrap.bind(Config.TRANSPOND_STREAM_SERVER_PORT).sync().channel().closeFuture().sync().channel();
+        System.out.println("netty websocket 上传文件服务 启动");
+        logger.info("etty websocket 上传文件服务 启动");
+        channel = bootstrap.bind(Config.UPLOAD_VIDEO_SERVER_PORT).sync().channel().closeFuture().sync().channel();
         close();
     }
 

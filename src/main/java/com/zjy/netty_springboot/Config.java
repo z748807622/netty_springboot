@@ -28,7 +28,7 @@ public class Config {
 
     public static String UPLOAD_VIDEO_SERVER_WEBSOCKET_URL = "ws://localhost:7777/ws";
 
-    public static String UPLOAD_VIDEO_FILE_DIR = "D:/test";
+    public static String UPLOAD_VIDEO_FILE_DIR = "D:/test/";
 
 
 }

@@ -2,6 +2,7 @@ package com.zjy.netty_springboot;
 
 import com.zjy.netty_springboot.netty.UDPStreamServer.UDPStreamServerApplication;
 import com.zjy.netty_springboot.netty.transpondStreamServer.TranspondStreamServerApplication;
+import com.zjy.netty_springboot.netty.uploadVideoServer.UploadVideoServerApplication;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ConfigurableApplicationContext;
@@ -26,6 +27,15 @@ public class NettySpringbootApplication {
             UDPStreamServerApplication udpStreamServerApplication = context.getBean(UDPStreamServerApplication.class);
             try {
                 udpStreamServerApplication.start(Config.ADDRESS_URL,Config.UDP_STREAM_SERVER_PORT);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }).start();
+
+        new Thread(()->{
+            UploadVideoServerApplication uploadVideoServerApplication = context.getBean(UploadVideoServerApplication.class);
+            try {
+                uploadVideoServerApplication.start();
             } catch (Exception e) {
                 e.printStackTrace();
             }

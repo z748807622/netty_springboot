@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>WebSocket客户端</title>
+    <script src="http://ajax.aspnetcdn.com/ajax/jQuery/jquery-1.8.0.js">
+</script>
+</head>
+<body>
+    <script type="text/javascript">
+        //封装 单个文件上传实例
+        var url = 'ws://localhost:7777/ws';
+(function () {
+    var url = 'ws://localhost:7777/ws';
+    //指定上传文件，创建上传操作对象
+    function uploadOperate(file) {
+        var _this = this;
+        this.canSend = false;
+        this.reader = new FileReader();//读取文件对象
+        this.step = 1024 * 30;//每次读取文件字节数
+        this.curLoaded = 0; //当前读取位置
+        this.file = file.files[0];   //当前文件对象
+        this.enableRead = true; //指定是否可读取,
+        this.total = this.file.size;  //当前文件总大小
+        this.startTime = new Date(); //开始读取时间
+        //创建显示
+        this.createItem();
+        this.initWebSocket(function (ws) {
+            ws.send("{'fileName':'"+ file.value.substring(file.value.lastIndexOf("\\")+1) +"'}");
+            /*if(this.canSend){
+                _this.bindReader();
+            }else{
+                console.log("文件名错误");
+                return;
+            }*/
+        });
+
+        console.info('文件大小：' + this.total);
+    }
+    uploadOperate.prototype = {
+        //绑定读取事件
+        bindReader: function () {
+            var _this = this;
+            var reader = this.reader;
+            var ws = this.ws;
+            reader.onload = function (e) {
+                //判断是否能再次读取
+                if (_this.enableRead == false) return;
+                //根据当前缓冲区 控制读取速度
+                if (ws.bufferedAmount >= _this.step * 20) {
+                    setTimeout(function () {
+                        _this.loadSuccess(e.loaded);
+                    }, 5);
+                    console.info('---->进入等待');
+                } else {
+                    //ws.send("{'fileName':'"+ _this.file.value +"'}");
+                    _this.loadSuccess(e.loaded);
+                }
+            }
+            //开始读取
+            _this.readBlob();
+        },
+        //读取成功，操作处理
+        loadSuccess: function (loaded) {
+            var _this = this;
+            var ws = _this.ws;
+            //使用WebSocket 将二进制输出上传到服务器
+            var blob = _this.reader.result;
+            if (_this.curLoaded <= 0)
+                ws.send(_this.file.name);
+            ws.send(blob);
+            //当前发送完成，继续读取
+            _this.curLoaded += loaded;
+            if (_this.curLoaded < _this.total) {
+                _this.readBlob();
+            } else {
+                //发送读取完成
+                ws.send('{"finish":1,"msg":"发送完成"}');
+                //读取完成
+                //console.log('总共上传：' + _this.curLoaded + ',总共用时：' + (new Date().getTime() - _this.startTime.getTime()) / 1000);
+            }
+            //显示进度等
+            _this.showProgress();
+        },
+        //创建显示项
+        createItem: function () {
+            var _this = this;
+            var blockquote = document.createElement('blockquote');
+            var abort = document.createElement('input');
+            abort.type = 'button';
+            abort.value = '中止';
+            abort.onclick = function () {
+                _this.stop();
+            };
+            blockquote.appendChild(abort);
+
+            var containue = document.createElement('input');
+            containue.type = 'button';
+            containue.value = '继续';
+            containue.onclick = function () {
+                _this.containue();
+            };
+            blockquote.appendChild(containue);
+
+            var progress = document.createElement('progress');
+            progress.style.width = '400px';
+            progress.max = 100;
+            progress.value = 0;
+            blockquote.appendChild(progress);
+            _this.progressBox = progress;
+
+            var status = document.createElement('p');
+            status.id = 'Status';
+            blockquote.appendChild(status);
+            _this.statusBox = status;
+
+            document.getElementById('bodyOne').appendChild(blockquote);
+        },
+        //显示进度
+        showProgress: function () {
+            var _this = this;
+            var percent = (_this.curLoaded / _this.total) * 100;
+            _this.progressBox.value = percent;
+            _this.statusBox.innerHTML = percent;
+        },
+        //执行读取文件
+        readBlob: function () {
+            var blob = this.file.slice(this.curLoaded, this.curLoaded + this.step);
+            this.reader.readAsArrayBuffer(blob);
+        },
+        //中止读取
+        stop: function () {
+            this.enableRead = false;
+            this.reader.abort();
+            //console.log('读取中止，curLoaded:' + this.curLoaded);
+        },
+        //继续读取
+        containue: function () {
+            this.enableRead = true;
+            this.readBlob();
+            //console.log('读取继续，curLoaded:' + this.curLoaded);
+        },
+        //初始化 绑定创建连接
+        initWebSocket: function (onSuccess) {
+            var _this = this;
+            var ws = this.ws = new WebSocket(url); //初始化上传对象
+            ws.onopen = function () {
+                //console.log('connect创建成功');
+                if (onSuccess)
+                    onSuccess(ws);
+            }
+            ws.onmessage = function (e) {
+                var data = e.data;
+                if(data.code == 200){
+                    _this.canSend = true;
+                    console.log("文件名为:" + _this.file.value);
+                    _this.bindReader();
+                    return;
+                }else{
+                    return;
+                }
+                if (isNaN(data) == false) {
+                    console.info('后台接收成功：' + data);
+                } else {
+                    console.info(data);
+                }
+            }
+            ws.onclose = function (e) {
+                //中止读取
+                _this.stop();
+                //console.log('connect已经断开');
+            }
+            ws.onerror = function (e) {
+                //中止读取
+                _this.stop();
+                //console.log('发生异常：' + e.message);
+            }
+        }
+    };
+    window.uploadOperate = uploadOperate;
+})();
+    </script>
+<script type="text/javascript">
+
+    //发送数据
+    function send(message){
+        if(!window.WebSocket){
+            return;
+        }
+
+        //当websocket状态打开
+        if(socket.readyState == WebSocket.OPEN){
+            socket.send(message);
+        }else{
+            alert("连接没有开启");
+        }
+    }
+
+/**
+ * 网络图像文件转Base64
+ */
+function getBase64Image(img) {
+    var canvas = document.createElement("canvas");
+    canvas.width = img.width;
+    canvas.height = img.height;
+    var ctx = canvas.getContext("2d");
+    ctx.drawImage(img, 0, 0, img.width, img.height);
+    var ext = img.src.substring(img.src.lastIndexOf(".") + 1).toLowerCase();
+    var dataURL = canvas.toDataURL("image/" + ext);
+    return dataURL;
+}
+ 
+ 
+/**
+*Base64字符串转二进制
+*/
+function dataURLtoBlob(dataurl) {
+    var arr = dataurl.split(','),
+    mime = arr[0].match(/:(.*?);/)[1],
+    bstr = atob(arr[1]),
+    n = bstr.length,
+    u8arr = new Uint8Array(n);
+    while (n--) {
+        u8arr[n] = bstr.charCodeAt(n);
+    }
+    return new Blob([u8arr], {
+        type: mime
+    });
+}
+
+function getvl(obj){
+    //判断浏览器
+     var Sys = {}; 
+     var ua = navigator.userAgent.toLowerCase(); 
+     var s; 
+     (s = ua.match(/msie ([\d.]+)/)) ? Sys.ie = s[1] : 
+     (s = ua.match(/firefox\/([\d.]+)/)) ? Sys.firefox = s[1] : 
+     (s = ua.match(/chrome\/([\d.]+)/)) ? Sys.chrome = s[1] : 
+     (s = ua.match(/opera.([\d.]+)/)) ? Sys.opera = s[1] : 
+     (s = ua.match(/version\/([\d.]+).*safari/)) ? Sys.safari = s[1] : 0;
+     var file_url="";
+     if(Sys.ie<="6.0"){
+      //ie5.5,ie6.0
+      file_url = obj.value;
+     }else if(Sys.ie>="7.0"){
+      //ie7,ie8
+      obj.select();
+      file_url = document.selection.createRange().text;
+     }else if(Sys.firefox){
+      //fx
+      //file_url = document.getElementById("file").files[0].getAsDataURL();//获取的路径为FF识别的加密字符串
+      file_url = readFileFirefox(obj);
+     }else if(Sys.chrome){
+      file_url = obj.value;
+     }
+     //alert(file_url);
+     return file_url;
+}
+ 
+ 
+/*var img = "图像文件URL地址";
+var image = new Image();
+image.src = img;*/
+function sendPic(){
+    ////console.log("发送文件");
+    var file = document.getElementById("file")//.files[0];
+    /*var oFReader = new FileReader();
+    oFReader.readAsDataURL(file);
+    //var image = new Image();
+    //image.src = file;
+   oFReader.onloadend = function(e){
+        //console.log("读取成功");
+        send(dataURLtoBlob(oFReader.result))
+   }*/
+   
+   window.fff = new uploadOperate(file);
+}
+</script>
+<form onsubmit="return false">
+    <textarea name = "message" style="width: 400px;height: 200px"></textarea>
+
+    <input type ="button" value="发送数据" onclick="send(this.form.message.value);">
+
+    <input type="file" id="file">
+    <input type="button" name="" onclick="sendPic()" value="发送文件">
+
+    <h3>服务器输出：</h3>
+
+    <textarea id ="responseText" style="width: 400px;height: 300px;"></textarea>
+
+    <input type="button" onclick="javascript:document.getElementById('responseText').value=''" value="清空数据">
+
+    <div>
+        <div id="bodyOne"></div>
+    </div>
+</form>
+</body>
+<!--
+<script type="text/javascript">
+    var socket = new WebSocket(url);
+    var stack = [];
+    //var blob = new Blob([],{type: "video/mp4"});
+    var flag = true;
+    //如果浏览器支持WebSocket
+    if(window.WebSocket){
+        //参数就是与服务器连接的地址
+        //socket = new WebSocket("ws://localhost:8888/ws");
+
+        //客户端收到服务器消息的时候就会执行这个回调方法
+        socket.onmessage = function (event) {
+            var ta = document.getElementById("responseText");
+            //console.log(typeof event.data + "----" + blob.size);
+            if((typeof event.data) == "string"){
+                ta.value = ta.value + "\n"+event.data;
+            }else if((typeof event.data) == "object"){
+                //blob += event.data
+                if(flag){
+                    stack.push(event.data);
+                }
+                console.log("----" + stack.length);
+                if(flag && stack.length > 200){
+                    flag = false;
+                    var blob = new Blob(stack,{type: "video/mp4"})
+                    var file = new FileReader();
+                    file.readAsDataURL(blob);
+                    file.onload=function(e){
+                        document.getElementById("video").src = file.result;
+                        file.abort();
+                        stack.length=0;
+                    }
+                }
+            }
+        }
+
+        //连接建立的回调函数
+        socket.onopen = function(event){
+            var ta = document.getElementById("responseText");
+            ta.value = "连接开启";
+        }
+
+        //连接断掉的回调函数
+        socket.onclose = function (event) {
+            var ta = document.getElementById("responseText");
+            ta.value = ta.value +"\n"+"连接关闭";
+        }
+    }else{
+        alert("浏览器不支持WebSocket！");
+    }
+</script>
+-->
+</html>

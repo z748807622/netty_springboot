@@ -94,7 +94,7 @@ public class UploadVideoHandler extends SimpleChannelInboundHandler<Object> {
             UserInfoManager.addChannel(ctx.channel());*/
             logger.info("上传文件 websocket 连接成功");
             //ctx.pipeline().writeAndFlush(Unpooled.copiedBuffer("连接成功!".getBytes()));
-            ctx.writeAndFlush(new TextWebSocketFrame("200"));
+            ctx.writeAndFlush(new TextWebSocketFrame("{'code':0,'msg':'连接成功'}"));
         }
     }
 
@@ -123,10 +123,11 @@ public class UploadVideoHandler extends SimpleChannelInboundHandler<Object> {
                 JSONObject json = JSON.parseObject(message);
                 if (json.containsKey("fileName")) {
                     fileName = json.getString("fileName");
-                    File file = new File(Config.UPLOAD_VIDEO_FILE_DIR + fileName + ".zip");
+                    File file = new File(Config.UPLOAD_VIDEO_FILE_DIR + fileName);
                     if (!file.exists()) {
                         try {
                             file.createNewFile();
+                            ctx.writeAndFlush(new TextWebSocketFrame("{'code':200,'msg':'创建文件:"+fileName+"'}"));
                         } catch (IOException e) {
                             e.printStackTrace();
                             ctx.writeAndFlush(new TextWebSocketFrame("{'code':1,'msg':'创建文件失败'}"));
@@ -135,20 +136,24 @@ public class UploadVideoHandler extends SimpleChannelInboundHandler<Object> {
                         ctx.writeAndFlush(new TextWebSocketFrame("{'code':1,'msg':'文件名已存在'}"));
                         return;
                     }
-                } else {
+                }else if(json.containsKey("finish")){
+                    bufferedOutputStream.flush();
+                    bufferedOutputStream.close();
+                }
+                else {
                     ctx.writeAndFlush(new TextWebSocketFrame("{'code':1,'msg':'参数错误'}"));
                     return;
                 }
             } catch (Exception e) {
                 e.printStackTrace();
-                ctx.writeAndFlush(new TextWebSocketFrame("{'code':1,'msg':'未知错误'}"));
+                ctx.writeAndFlush(new TextWebSocketFrame("{'code':1,'msg':'参数错误'}"));
             }
             return;
         }
 
         if (frame instanceof BinaryWebSocketFrame) {
             if (Strings.isBlank(fileName)) {
-                ctx.writeAndFlush(new TextWebSocketFrame("{'code':1,'msg':'为选择文件名'}"));
+                ctx.writeAndFlush(new TextWebSocketFrame("{'code':1,'msg':'未选择文件名'}"));
                 logger.info("{'code':1,'msg':'未选择文件名'}");
                 return;
             }

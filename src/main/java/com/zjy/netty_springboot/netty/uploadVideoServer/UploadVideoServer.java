@@ -89,6 +89,8 @@ public class UploadVideoServer {
                                 //处理握手和认证
                                 //new UserAuthHandler(),
                                 //处理消息的发送
+                                ,new UploadVideoHandler()
+
                         );
                     }
                 });
