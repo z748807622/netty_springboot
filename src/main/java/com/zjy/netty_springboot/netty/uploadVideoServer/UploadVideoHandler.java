@@ -18,6 +18,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import java.io.*;
+import java.nio.ByteBuffer;
+import java.nio.channels.ByteChannel;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
@@ -28,9 +30,10 @@ public class UploadVideoHandler extends SimpleChannelInboundHandler<Object> {
     private static Logger logger = LoggerFactory.getLogger(UploadVideoHandler.class);
 
     private boolean first = true;
-    private FileOutputStream fos;
-    private BufferedOutputStream bufferedOutputStream;
+    private FileOutputStream fileOutputStream;
     private String fileName = null;
+    private ByteChannel byteChannel;
+
 
     private WebSocketServerHandshaker handshaker;
 
@@ -54,9 +57,8 @@ public class UploadVideoHandler extends SimpleChannelInboundHandler<Object> {
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
         System.out.println(ctx.channel().localAddress().toString() + " channelInactive");
         // 关闭流
-        bufferedOutputStream.flush();
-        bufferedOutputStream.close();
-        first = false;
+        loginOut();
+        first = true;
     }
 
     @Override
@@ -94,7 +96,7 @@ public class UploadVideoHandler extends SimpleChannelInboundHandler<Object> {
             UserInfoManager.addChannel(ctx.channel());*/
             logger.info("上传文件 websocket 连接成功");
             //ctx.pipeline().writeAndFlush(Unpooled.copiedBuffer("连接成功!".getBytes()));
-            ctx.writeAndFlush(new TextWebSocketFrame("{'code':0,'msg':'连接成功'}"));
+            ctx.writeAndFlush(new TextWebSocketFrame("{'code':111,'msg':'连接成功'}"));
         }
     }
 
@@ -102,7 +104,6 @@ public class UploadVideoHandler extends SimpleChannelInboundHandler<Object> {
         // 判断是否关闭链路命令
         if (frame instanceof CloseWebSocketFrame) {
             handshaker.close(ctx.channel(), (CloseWebSocketFrame) frame.retain());
-            MyChannelHandlerPool.channelGroup.remove(ctx.channel());
             logger.info("上传-{}-  退出", ctx.channel().localAddress().toString());
             return;
         }
@@ -128,25 +129,32 @@ public class UploadVideoHandler extends SimpleChannelInboundHandler<Object> {
                         try {
                             file.createNewFile();
                             ctx.writeAndFlush(new TextWebSocketFrame("{'code':200,'msg':'创建文件:"+fileName+"'}"));
+                            fileOutputStream = new FileOutputStream(file);
+                            byteChannel = fileOutputStream.getChannel();//用nio将数据写入文件
                         } catch (IOException e) {
                             e.printStackTrace();
                             ctx.writeAndFlush(new TextWebSocketFrame("{'code':1,'msg':'创建文件失败'}"));
+                            loginOut();
                         }
                     } else {
                         ctx.writeAndFlush(new TextWebSocketFrame("{'code':1,'msg':'文件名已存在'}"));
+                        loginOut();
                         return;
                     }
                 }else if(json.containsKey("finish")){
-                    bufferedOutputStream.flush();
-                    bufferedOutputStream.close();
+                    ctx.writeAndFlush(new TextWebSocketFrame("{'code':777,'msg':'文件接收成功'}"));
+                    logger.info("{'code':777,'msg':'文件接收成功'}");
+                    loginOut();
                 }
                 else {
                     ctx.writeAndFlush(new TextWebSocketFrame("{'code':1,'msg':'参数错误'}"));
+                    loginOut();
                     return;
                 }
             } catch (Exception e) {
                 e.printStackTrace();
                 ctx.writeAndFlush(new TextWebSocketFrame("{'code':1,'msg':'参数错误'}"));
+                loginOut();
             }
             return;
         }
@@ -155,22 +163,23 @@ public class UploadVideoHandler extends SimpleChannelInboundHandler<Object> {
             if (Strings.isBlank(fileName)) {
                 ctx.writeAndFlush(new TextWebSocketFrame("{'code':1,'msg':'未选择文件名'}"));
                 logger.info("{'code':1,'msg':'未选择文件名'}");
+                loginOut();
                 return;
             }
-            logger.info("接收到上传文件数据");
+            //logger.info("接收到上传文件数据");
             ByteBuf buf = frame.content();
             // 开始处理文件信息
-            byte[] bytes = new byte[buf.readableBytes()];
-            buf.readBytes(bytes);
-            System.out.println("本次接收内容长度：" + frame.toString().length());
+            ByteBuffer buffer = ByteBuffer.allocate(buf.readableBytes());
+            buf.readBytes(buffer);
+            //System.out.println("本次接收内容长度：" + frame.toString().length());
             try {
-                bufferedOutputStream.write(bytes, 0, bytes.length);
-                buf.release();
+                buffer.flip();//转为读状态
+                byteChannel.write(buffer);
+                ctx.writeAndFlush(new TextWebSocketFrame("0"));//代表接收成功，可以发送下一段了
             } catch (IOException e) {
                 e.printStackTrace();
-
+                loginOut();
             }
-
         }
     }
 
@@ -203,5 +212,26 @@ public class UploadVideoHandler extends SimpleChannelInboundHandler<Object> {
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
         ctx.close();
         logger.error("异常信息： {}",cause.getMessage());
+    }
+
+    /**
+     * 关闭通道和文件
+     */
+    private void loginOut(){
+        if(fileOutputStream != null) {
+            try {
+                fileOutputStream.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        if(byteChannel != null){
+            try {
+                byteChannel.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        logger.warn("文件通道关闭");
     }
 }

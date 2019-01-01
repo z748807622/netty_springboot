@@ -9,15 +9,15 @@
 <body>
     <script type="text/javascript">
         //封装 单个文件上传实例
-        var url = 'ws://localhost:7777/ws';
+        var url = 'ws://192.168.0.102:7777/ws';
 (function () {
-    var url = 'ws://localhost:7777/ws';
+    var url = 'ws://192.168.0.102:7777/ws';
     //指定上传文件，创建上传操作对象
     function uploadOperate(file) {
         var _this = this;
         this.canSend = false;
         this.reader = new FileReader();//读取文件对象
-        this.step = 1024 * 30;//每次读取文件字节数
+        this.step = 1024 * 60;//每次读取文件字节数
         this.curLoaded = 0; //当前读取位置
         this.file = file.files[0];   //当前文件对象
         this.enableRead = true; //指定是否可读取,
@@ -41,11 +41,16 @@
         //绑定读取事件
         bindReader: function () {
             var _this = this;
-            var reader = this.reader;
+            //var reader = this.reader;
             var ws = this.ws;
-            reader.onload = function (e) {
+            /*reader.onload = function (e) {
+                _this.curLoaded += e.loaded;
                 //判断是否能再次读取
                 if (_this.enableRead == false) return;
+
+                //_this.loadSuccess();
+
+                *
                 //根据当前缓冲区 控制读取速度
                 if (ws.bufferedAmount >= _this.step * 20) {
                     setTimeout(function () {
@@ -56,23 +61,27 @@
                     //ws.send("{'fileName':'"+ _this.file.value +"'}");
                     _this.loadSuccess(e.loaded);
                 }
-            }
+                *
+            }*/
             //开始读取
             _this.readBlob();
+            
         },
         //读取成功，操作处理
-        loadSuccess: function (loaded) {
+        loadSuccess: function (reader) {
             var _this = this;
             var ws = _this.ws;
             //使用WebSocket 将二进制输出上传到服务器
-            var blob = _this.reader.result;
-            if (_this.curLoaded <= 0)
-                ws.send(_this.file.name);
-            ws.send(blob);
+            //var blob = _this.reader.result;
+            /*if (_this.curLoaded <= 0)
+                ws.send(_this.file.name);*/
+            //ws.send(blob);
             //当前发送完成，继续读取
-            _this.curLoaded += loaded;
+            
             if (_this.curLoaded < _this.total) {
                 _this.readBlob();
+                
+               // cb(flag);//
             } else {
                 //发送读取完成
                 ws.send('{"finish":1,"msg":"发送完成"}');
@@ -121,12 +130,23 @@
             var _this = this;
             var percent = (_this.curLoaded / _this.total) * 100;
             _this.progressBox.value = percent;
-            _this.statusBox.innerHTML = percent;
+            _this.statusBox.innerHTML = percent.toString().replace(/(?<=\.\d).*/g,'') + "%";
         },
         //执行读取文件
         readBlob: function () {
+            var _this = this;
+            var reader = new FileReader();
             var blob = this.file.slice(this.curLoaded, this.curLoaded + this.step);
-            this.reader.readAsArrayBuffer(blob);
+            reader.readAsArrayBuffer(blob);
+            reader.onload = function(e){
+                _this.curLoaded += e.loaded;
+                //使用WebSocket 将二进制输出上传到服务器
+                var blob = reader.result;
+                /*if (_this.curLoaded <= 0)
+                    ws.send(_this.file.name);*/
+                _this.ws.send(blob);
+                reader.abort();
+            }
         },
         //中止读取
         stop: function () {
@@ -150,20 +170,24 @@
                     onSuccess(ws);
             }
             ws.onmessage = function (e) {
-                var data = e.data;
+                var data = eval('(' + e.data + ')');
+                console.log(data)
                 if(data.code == 200){
                     _this.canSend = true;
-                    console.log("文件名为:" + _this.file.value);
+                    console.log(data.msg);
                     _this.bindReader();
                     return;
-                }else{
+                }
+                if(data == 0){
+                    //使用WebSocket 将二进制输出上传到服务器
+                    _this.loadSuccess();
                     return;
                 }
-                if (isNaN(data) == false) {
+                /*if (isNaN(data) == false) {
                     console.info('后台接收成功：' + data);
                 } else {
                     console.info(data);
-                }
+                }*/
             }
             ws.onclose = function (e) {
                 //中止读取

@@ -10,13 +10,13 @@
     </style>
 
 </head>
-<body onclick="play()">
-    <canvas id="video-canvas"></canvas>
+<body onclick="play()" style="cursor: pointer;">
+    <canvas id="video-canvas" style="transform: scale(0.5,0.5);"></canvas>
     <script type="text/javascript" src="/static/js/jsmpeg.min.js"></script>
     <script type="text/javascript">
         var flag = true;
         var canvas = document.getElementById('video-canvas');
-        var url = 'ws://'+'127.0.0.1:8888/ws';
+        var url = 'ws://'+'192.168.0.102:8888/ws';
         var config = {
             canvas: canvas,
             autoplay: true,
@@ -27,8 +27,13 @@
         };
         var player
          function play(){
-            if(flag)
+            if(flag){
+                alert("开始播放");
                 player = new JSMpeg.Player(url, config);
+                var aa = document.getElementById("video-canvas");
+                aa.width = 576;
+                aa.height = 324;
+            }
             flag = false;
         }
     </script>
