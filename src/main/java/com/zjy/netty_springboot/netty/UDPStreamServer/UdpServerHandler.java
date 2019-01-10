@@ -32,8 +32,6 @@ public class UdpServerHandler extends SimpleChannelInboundHandler<DatagramPacket
             //logger.info("clientMessage is: "+msg);
             DatagramPacket dd = (DatagramPacket) msg;
             ByteBuf bb = Unpooled.copiedBuffer(dd.content());
-            //FullHttpResponse response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK);
-            //response.headers().set(HttpHeaderNames.CONTENT_TYPE,"video/mp4");
             //response.content().writeBytes(bb);
             //System.out.println("收到二进制流");
             MyChannelHandlerPool.channelGroup.writeAndFlush(new BinaryWebSocketFrame(bb));
