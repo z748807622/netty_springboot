@@ -25,8 +25,8 @@ public class MyTest {
 
     public void execCmd(){
         try {
-            //Process p = Runtime.getRuntime().exec("ping 172.247.34.70");
-            String cmd = "ffmpeg -stream_loop -1 -re -i D:/video/h2哈利波特第8部哈利波特与死亡圣器(下).mp4 -f mpegts -codec:v mpeg1video -s 864*486 udp://127.0.0.1:4444";
+            //Process p = Runtime.getRuntime().exec("ping 172.247.34.70"); 1152*640
+            String cmd = "ffmpeg -stream_loop -1 -re -i D:/video/3有头脑的祖先.mp4 -f mpegts -codec:v mpeg1video -s 1152*640 udp://127.0.0.1:4444";
             //String cmd2 = "ffmpeg";
             String cmd3 = "ping 172.247.34.70";
             Process p = Runtime.getRuntime().exec(cmd);
