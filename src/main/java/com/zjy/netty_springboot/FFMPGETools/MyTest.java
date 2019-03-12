@@ -24,12 +24,16 @@ public class MyTest {
     }
 
     public void execCmd(){
+        String fileName1 = "自然发现鸟类的生活——成长.mp4";
+        String fileName2 = "有头脑的祖先.mp4";
+        String fileName3 = "output.avi";
         try {
-            //Process p = Runtime.getRuntime().exec("ping 172.247.34.70"); 1152*640
-            String cmd = "ffmpeg -stream_loop -1 -re -i D:/video/3有头脑的祖先.mp4 -f mpegts -codec:v mpeg1video -s 1152*640 udp://127.0.0.1:4444";
+            //Process p = Runtime.getRuntime().exec("ping 172.247.34.70"); 1152*640  1152*640
+            String cmd = "ffmpeg -stream_loop -1 -re -i D:/video/" + fileName2 + " -f mpegts -codec:v mpeg1video -s 1037*576 udp://127.0.0.1:4444";
             //String cmd2 = "ffmpeg";
             String cmd3 = "ping 172.247.34.70";
-            Process p = Runtime.getRuntime().exec(cmd);
+            Runtime rt = Runtime.getRuntime();
+            Process p = rt.exec(cmd);
 
             new Thread(()->{
                 try {

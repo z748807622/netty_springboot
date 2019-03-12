@@ -3,12 +3,6 @@ package com.zjy.netty_springboot.netty.messageEntity;
 import java.io.Serializable;
 
 public class SendMsg implements Serializable {
-
-    /**
-     * 来自哪儿
-     */
-    private String from;
-
     /**
      * 去哪儿
      */
@@ -20,14 +14,6 @@ public class SendMsg implements Serializable {
     private MsgType type;
 
     private String content;
-
-    public String getFrom() {
-        return from;
-    }
-
-    public void setFrom(String from) {
-        this.from = from;
-    }
 
     public String getGo() {
         return go;

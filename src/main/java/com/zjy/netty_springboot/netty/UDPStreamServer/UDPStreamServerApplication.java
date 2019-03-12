@@ -3,11 +3,14 @@ package com.zjy.netty_springboot.netty.UDPStreamServer;
 import com.zjy.netty_springboot.netty.transpondStreamServer.TranspondStreamServerApplication;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
+import io.netty.channel.DefaultEventLoopGroup;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
+import org.springframework.web.context.ContextLoader;
+import org.springframework.web.context.WebApplicationContext;
 
 @Component
 public class UDPStreamServerApplication {
@@ -27,6 +30,15 @@ public class UDPStreamServerApplication {
         }catch (Exception e){
             e.printStackTrace();
         }
+    }
+
+    public void stop(){
+        logger.info("UDPStreamServer 关闭");
+        WebApplicationContext wac = ContextLoader.getCurrentWebApplicationContext();
+        DefaultEventLoopGroup group1 = (DefaultEventLoopGroup)wac.getBean("getWorkGroup2");
+        group1.shutdownGracefully();
+        channel.close();
+        channel.parent().close();
     }
 
 }
